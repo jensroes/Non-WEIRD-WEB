@@ -1,0 +1,65 @@
+---
+title: "Web-based studies for non-WEIRD countries"
+author: "Rowena Garcia and Jens Roeser"
+date: "Compiled `r Sys.Date()`"
+output:
+  rmdformats::readthedown:
+    fig_width: 8
+    fig_height: 8
+    lightbox: true
+    gallery: false
+    highlight: "kate"
+
+---
+
+
+```{r, include=FALSE}
+library(citr) # CRTL + Shift + R for citations
+library(kableExtra)
+library(rmdformats)
+library(knitr)
+library(WDI)
+library(tidyverse)
+library(stringi)
+library(janitor)
+theme_set(theme_bw(base_size = 12) + 
+            theme(axis.ticks = element_blank(),
+                  panel.grid = element_blank()))
+percentile <- function(x) return( rank(x)/max(rank(x)) )  
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      comment=NA, 
+                      warning = FALSE,
+                      message =FALSE)
+
+```
+
+```{r}
+weird <- c("Sweden", "Norway", "Finland", "United Kingdom", "Ireland", "Spain", "Portugal", "France", "Italy", "Switzerland", "Austria", "Germany", "Slovakia", "Hungary", "Czech Republic", "Poland", "Croatia", "Slovenia", "Netherlands","Belgium", "Luxembourg","Liechtenstein", "Vatican", "Andorra", "Monaco", "Denmark", "Latvia", "Lithuania", "Estonia", "Iceland", "New Zealand", "Australia", "United States", "Canada", "Israel")# "Uruguay", "Argentina", "Chile", "Japan", "South Korea", "South Africa")
+```
+
+
+# Access to mobile phones
+
+```{r}
+# use app instead so people can select countries?
+mobile <- WDI(indicator='gwp1_n') #"Access to a mobile phone (% age 15+)" 
+mobile %>% filter(!(country %in% weird)) %>%
+  group_by(country) %>% drop_na() %>%
+  filter(year == max(year)) %>%
+  mutate(highlight = if_else(country == "Philippines", TRUE, FALSE)) %>%
+  ggplot(aes(y = gwp1_n/100, x = reorder(country, gwp1_n), colour = highlight )) +
+  geom_point(size = 2, shape = 21, show.legend = F, fill= "white") +
+  geom_col(show.legend = F, width = .1) +
+  scale_y_continuous(labels = scales::percent) +
+  scale_colour_manual(values = c("grey70", "red")) +
+  labs(caption = "Source: World Bank", x = "", y = "Access to a mobile phone (age 15+)") +
+  theme(axis.text.y = element_text(size = 8)) +
+  coord_flip() 
+
+```
+
+
+
