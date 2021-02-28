@@ -10,4 +10,5 @@ https://jens-roeser.shinyapps.io/Non-WEIRD-WEB/
 ## References
 
 Arel-Bundock, V. (2021). *WDI: World Development Indicators and Other World Bank Data*. R package version 2.7.2. https://vincentarelbundock.github.io/WDI/
+
 Henrich, J., Heine, S. J., & Norenzayan, A. (2010). Most people are not WEIRD. *Nature*, 466(7302), 29-29.
