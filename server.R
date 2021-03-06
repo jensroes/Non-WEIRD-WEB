@@ -10,43 +10,90 @@ server <- function(input, output, session) {
         scale_fill_manual(values = c("grey70", "darkred")) +
         labs(caption = "Source: World Bank", x = "", y = "") +
    #     theme(axis.text.y = element_text(size = 8)) +
-        facet_wrap(~vars, scales = "free") +
-        coord_flip() 
-  })
+        facet_wrap(~vars, scales = "free", ncol = 2) +
+        coord_flip() +
+        theme(panel.grid = element_blank())
+  }, height = 700, width = 920)
   
   output$timecourse <- renderPlot({
     data_time %>% filter(country %in% input$country, vars %in% input$vars) %>%
       group_by(country, vars) %>%
       mutate(n = length(unique(year)),
-             country_lab = if_else(year == max(year) & value == max(value), country, "")) %>%
+             maxyear = max(year),
+             maxvalue = max(value),
+             country_lab = if_else(year == maxyear & value == maxvalue, country, "")) %>%
       filter(n > 1) %>%
       ggplot(aes(y = value, x = year, colour = country, label = country_lab )) +
-      geom_line(show.legend = F) +
-      geom_text(show.legend = F) +
+      geom_line(show.legend = T) +
+      geom_text(aes(x = year-1), show.legend = F) +
       #  scale_y_continuous(labels = scales::percent, limits = c(0,1)) +
-      scale_fill_manual(values = c("grey70", "darkred")) +
-      scale_colour_colorblind() +
+    #  scale_fill_manual(values = c("grey70", "darkred")) +
+      scale_colour_colorblind("") +
       scale_x_continuous(breaks = seq(2000, 2030, 1)) +
       labs(caption = "Source: World Bank", x = "", y = "") +
       #     theme(axis.text.y = element_text(size = 8)) +
-      facet_wrap(~vars, scales = "free", ncol = 2, shrink = T) 
-  })
+      facet_wrap(~vars, scales = "free", ncol = 2, shrink = T)  +
+      theme(legend.position = "bottom",
+            legend.justification = "right")
+  }, height = 600, width = 920)
   
   output$map <- renderPlot({
     coord <- ne_countries(returnclass = "sf") 
-    left_join(
-      coord,
-      data,
-      c("iso_a2" = "iso2c")) %>%
+    plot_data <- data %>% select(-year, -highlight) %>%
+    left_join(coord, ., c("name" = "country")) %>% rename(country = name) %>%
       filter(country %in% input$country, vars %in% input$vars) %>%
+    #  filter(country %in% "Philippines") %>%
       drop_na(vars) %>%
+      mutate(is_perc = str_detect(vars, pattern = "%"), 
+             vars = word_wrap(vars, 30))
+    
+    plot_data %>% filter(is_perc == TRUE) %>%
       ggplot(aes(fill = value)) +
       geom_sf() +
-      scale_fill_viridis_c() +
-      facet_wrap(~vars, ncol = 3) +
-      theme(legend.position="bottom",
-            axis.text = element_blank()) 
+      scale_fill_viridis_c(direction = -1) +
+      facet_grid(~vars) +
+      theme(axis.text = element_blank(),
+            panel.grid = element_blank(),
+            legend.position = "right",
+            legend.justification = "top",
+            legend.direction = "vertical") #-> plot_perc_yes
+  #  ggplotly(plot_perc_yes) %>% layout(height = 700, width = 1100)
     
+  }) #
+  
+  
+  output$map2 <- renderPlot({
+    coord <- ne_countries(returnclass = "sf") 
+    plot_data <- data %>% select(-year, -highlight) %>%
+      left_join(coord, ., c("name" = "country")) %>% rename(country = name) %>%
+      filter(country %in% input$country, vars %in% input$vars) %>%
+      #      filter(country %in% "Philippines") %>%
+      drop_na(vars) %>%
+      mutate(is_perc = str_detect(vars, pattern = "%"),
+             vars = word_wrap(vars, 30))
+    
+    no_perc_vars <- plot_data %>% filter(is_perc == FALSE) %>% 
+      pull(vars) %>% unique()
+    
+    for(i in no_perc_vars){
+      assign(paste0("plot_perc_no_", substr(i,1,5)),
+             plot_data %>% filter(vars %in% i) %>%
+               ggplot(aes(fill = value)) +
+               geom_sf() +
+               scale_fill_viridis_c(direction = -1) +
+               facet_grid(~vars) +
+               theme(axis.text = element_blank(),
+                     panel.grid = element_blank(),
+                     legend.position = "right",
+                     legend.justification = "top",
+                     legend.direction = "vertical"))
+      #  ggplotly(p) %>% layout(height = 700, width = 1100) %>%
+      #    print()
+    }    
+    
+    plots <- ls(pattern = "plot_perc")
+    
+    cowplot::plot_grid(plotlist=mget(plots))
     
   })
   

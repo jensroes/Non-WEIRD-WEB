@@ -9,7 +9,9 @@ library(tidyverse)
 
 #d <- wbstats::wb_data(my_indicators)
 
-mobile <- WDI(indicator=) %>% #"Access to a mobile phone (% age 15+)" 
+
+
+mobile <- WDI(indicator = "gwp1_n") %>% #"Access to a mobile phone (% age 15+)" 
   group_by(country) %>% drop_na() %>%
   filter(year == max(year)) %>%
   rename(value = gwp1_n) %>% 

@@ -8,3 +8,4 @@ source("server.R")
 
 # Create app
 shinyApp(ui = ui, server = server)
+
