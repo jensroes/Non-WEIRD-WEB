@@ -4,8 +4,7 @@ This app contains a summary of data to inform whether web-based studies are feas
 
 The data are still sparse and there are probably many indicators worth adding. Please email me if you think there is data worth adding (jens.roser@ntu.ac.uk).
 
-A proto-type is here:
-https://jens-roeser.shinyapps.io/Non-WEIRD-WEB/
+A proto-type is here: http://shiny.ntupsychology.net/Non-WEIRD-WEB/
 
 ## References
 
