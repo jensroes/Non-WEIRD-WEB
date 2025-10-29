@@ -1,11 +1,10 @@
 server <- function(input, output, session) {
   
-  source("environment.R")
-  
   output$mobile_plot <- renderPlot({
-      data %>% filter(country %in% input$country, vars %in% input$vars) %>%
+      data %>% 
+      filter(country %in% input$country, vars %in% input$vars) %>%
         ggplot(aes(y = value, x = reorder(country, value), fill = highlight )) +
-        geom_col(show.legend = F, width = .25) +
+        geom_col(show.legend = F, width = .25, alpha = 45) +
       #  scale_y_continuous(labels = scales::percent, limits = c(0,1)) +
         scale_fill_manual(values = c("grey70", "darkred")) +
         labs(caption = "Source: World Bank", x = "", y = "") +
@@ -38,7 +37,7 @@ server <- function(input, output, session) {
   }, height = 600, width = 920)
   
   output$map <- renderPlot({
-    coord <- ne_countries(returnclass = "sf") 
+    coord <- rnaturalearth::ne_countries(returnclass = "sf") 
     plot_data <- data %>% select(-year, -highlight) %>%
     left_join(coord, ., c("name" = "country")) %>% rename(country = name) %>%
       filter(country %in% input$country, vars %in% input$vars) %>%
@@ -52,6 +51,7 @@ server <- function(input, output, session) {
       geom_sf() +
       scale_fill_viridis_c(direction = -1) +
       facet_grid(~vars) +
+      labs(caption = "Source: World Bank") +
       theme(axis.text = element_blank(),
             panel.grid = element_blank(),
             legend.position = "right",
@@ -63,7 +63,7 @@ server <- function(input, output, session) {
   
   
   output$map2 <- renderPlot({
-    coord <- ne_countries(returnclass = "sf") 
+    coord <- rnaturalearth::ne_countries(returnclass = "sf") 
     plot_data <- data %>% select(-year, -highlight) %>%
       left_join(coord, ., c("name" = "country")) %>% rename(country = name) %>%
       filter(country %in% input$country, vars %in% input$vars) %>%
@@ -82,6 +82,7 @@ server <- function(input, output, session) {
                geom_sf() +
                scale_fill_viridis_c(direction = -1) +
                facet_grid(~vars) +
+               labs(caption = "Source: World Bank") +
                theme(axis.text = element_blank(),
                      panel.grid = element_blank(),
                      legend.position = "right",
@@ -97,12 +98,45 @@ server <- function(input, output, session) {
     
   })
   
+  output$map_language <- renderPlot({
+    coord <- rnaturalearth::ne_countries(returnclass = "sf") 
+    language_data %>% 
+      count(country) %>%
+      left_join(coord, ., c("name" = "country")) %>% rename(country = name) %>%
+      drop_na("n") %>%
+      filter(country %in% input$country) %>%
+      ggplot(aes(fill = n)) +
+      geom_sf() +
+      scale_fill_viridis_c(direction = -1) +
+      labs(caption = "Source: Glottolog 4.3", fill = "No. of languages") +
+      theme(axis.text = element_blank(),
+            panel.grid = element_blank(),
+            legend.position = "right",
+            legend.justification = "top",
+            legend.direction = "vertical")
+  })
+
+  output$no_of_langs <- renderPlot({
+    language_data %>% 
+      count(country, highlight) %>%
+      filter(country %in% input$country) %>%
+      ggplot(aes(y=n, x=reorder(country,n), fill = highlight, label = n )) +
+      geom_col(show.legend = F, width = .25, alpha = .45) +
+      geom_label(fill = "white") +
+      #  scale_y_continuous(labels = scales::percent, limits = c(0,1)) +
+      scale_fill_manual(values = c("grey70", "darkred")) +
+      labs(caption = "Source: Glottolog 4.3", x = "", y = "") +
+      coord_flip() +
+      theme(panel.grid = element_blank())
+  }, height = 500, width = 950)
+  
+  
   data_summary <- reactive({
     data_summary <- data %>%
         filter(country %in% input$country, vars %in% input$vars) %>%
         mutate_if(is.double, round, 2) %>%
         arrange(desc(value)) %>%
-        select(-highlight,-iso2c) %>%
+        select(-highlight,-iso3c) %>%
         pivot_wider(names_from = country, values_from = value) %>%
         select(Indicator = vars, Status = year, everything()) 
     

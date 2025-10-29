@@ -4,10 +4,11 @@ ui <- fluidPage(
   # Setup title part ---------------------------
   titlePanel(
     windowTitle = "Non-WEIRD web-based", #this appears in the browser tab
-    title = h1("Web-based sampling in non-WEIRD countries",
-          #     h4("by Jens Roeser & Rowena Garcia"),
-           #    h4("email: jens.roeser@ntu.ac.uk"),
-               h4("Source: World Bank"))),
+    title = h1("Web-based sampling in Global South countries",
+            h4("by Jens Roeser & Rowena Garcia"),
+            h4("email: jens.roeser@ntu.ac.uk"),
+            h4(""))
+          ),
   
   # Themes changes app layout
   theme = shinytheme("sandstone"),
@@ -58,10 +59,17 @@ ui <- fluidPage(
   #                 plotlyOutput('map', width = "100%"),
    #                h2(),
     #               plotOutput('map2', width = "100%"))
-            )
+            ),
+        tabPanel("Language distribution", 
+                 fluidRow(
+                   column(width = 12, plotOutput("map_language")),
+                   h1(),
+                   column(width = 12, plotOutput("no_of_langs"))
+                 )
           )
         )
       )
     )
   )
+)
 )

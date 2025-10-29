@@ -1,0 +1,10 @@
+name: Non-WEIRD-WEB
+title:
+username: jens-roeser
+account: jens-roeser
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 8298128
+bundleId: 11102533
+url: https://jens-roeser.shinyapps.io/Non-WEIRD-WEB/
+version: 1
